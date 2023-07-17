@@ -37,7 +37,7 @@ function Register() {
                 const user = userCredential.user;
                 console.log(user);
                 setIsLoading(false);
-                toast.success(' Registration SuccessFull!')
+                // toast.success(' Registration SuccessFull!')
                 navigate('/login');
             })
             .catch((error) => {
@@ -49,8 +49,6 @@ function Register() {
 
     return (  
         <>
-            <ToastContainer/>
-
             { isLoadinng && <Loader />}
             <section className={cx('auth', 'container')}>
                 <Card>
