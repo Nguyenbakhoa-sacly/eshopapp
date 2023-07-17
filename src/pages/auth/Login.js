@@ -2,8 +2,8 @@
 
 import { Link, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import { ToastContainer, toast } from 'react-toastify';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Card } from '../../components/index'
 import Loader from '../../components/loader/Loader';
@@ -21,7 +21,7 @@ function Login() {
     const [ isLoadinng, setIsLoading] = useState(false)
 
     const navigate = useNavigate()
-    
+
     const loginUser =(e)=>{
 
         e.preventDefault()
@@ -38,6 +38,19 @@ function Login() {
             setIsLoading(false)
         });
 
+    }
+
+    //login with google
+    const provider = new GoogleAuthProvider();
+    const signInWithGoogle = () => {
+        signInWithPopup(auth, provider)
+        .then((result) => {
+            const user = result.user;
+            toast.success('LOgin successfully!')
+            navigate('/')
+        }).catch((error) => {
+            toast.error(error.message)
+        });
     }
     return ( 
         <>
@@ -79,6 +92,7 @@ function Login() {
                         <button 
                             type="submit" 
                             className='--btn --btn-block --btn-danger'
+                            onClick={signInWithGoogle}
                         >
                                 < AiOutlineGoogle size={21}/>
                                 Login With Google
