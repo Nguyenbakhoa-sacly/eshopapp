@@ -3,14 +3,18 @@
 import { AiOutlineShoppingCart } from 'react-icons/ai'
 import { HiOutlineMenuAlt3 } from 'react-icons/hi'
 import { FaTimes } from 'react-icons/fa'
+import { BiUserCircle } from 'react-icons/bi'
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../../firebase/config';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { SET_ACTIVE_USER, REMOVE_ACTIVE_USER } from '../../redux/slice/AuthSlice';
 import styles from './Header.module.scss';
 import classNames from 'classnames/bind';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ShowOnLogin, { ShowOnLogOut } from '../hiddenLink/hiddenLink';
 const cx = classNames.bind(styles)
 
 const logo = (
@@ -40,6 +44,41 @@ const activeLInk = ({isActive})=>(
 function Header() {
 
     const [ showMenu, setShowMenu ] = useState(false)
+    
+    //Dùng để lấy tên người dùng
+    const dispatch = useDispatch()
+    const [ displayName, setDisplayName ] = useState('')
+    useEffect (()=>{
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                
+                // const uid = user.uid;
+                console.log(user)
+                if(user.displayName == null) {
+                    const u1 = user.email.substring(0, user.email.indexOf('@'));
+                    const uName = u1.charAt(0).toUpperCase() + u1.slice(1);
+                    
+                    setDisplayName(uName);
+                }else {
+                    setDisplayName(user.displayName)
+                }
+                setDisplayName(user.displayName)
+
+                dispatch(
+                    SET_ACTIVE_USER({
+                        email: user.email,
+                        username: user.displayName ? user.displayName : displayName,
+                        userID:user.uid,
+                }));
+            } else {
+                setDisplayName('')
+                dispatch( 
+                    REMOVE_ACTIVE_USER()
+                )
+            }
+            });
+
+    }, [dispatch, displayName]);
     const navigate = useNavigate()
     const taggleMenu = ()=>{
         setShowMenu( !showMenu );
@@ -55,11 +94,13 @@ function Header() {
         }).catch((e) => {
             toast.error(e.message)
         });
-
     }
+
+
+
     return ( 
         <>
-            <ToastContainer/>
+            
             <header>
                 <div className={cx('header')}>
                     {logo}
@@ -102,29 +143,43 @@ function Header() {
                             onClick={ hideMenu }
                         >
                             <span className={cx('links')}>
-                                <NavLink 
-                                    className={activeLInk}
-                                    to='/login'
-                                > 
-                                    Login 
-                                </NavLink>
-                                <NavLink 
-                                    className={activeLInk}
-                                    to='/register'
-                                > Register 
-                                </NavLink>
-                                <NavLink 
-                                    className={activeLInk}
-                                    to='/order-history'
-                                > My orders 
-                                </NavLink>
-                                <NavLink 
-                                    to='/'
-                                    onClick={logoutUser}
-                                    
-                                > 
-                                    Logout
-                                </NavLink>
+                                <ShowOnLogOut>
+                                    <NavLink 
+                                        className={activeLInk}
+                                        to='/login'
+                                    > 
+                                        Login 
+                                    </NavLink>
+                                </ShowOnLogOut>
+                                <ShowOnLogin>
+                                    <a href='#home' style={{color:'#ff7722'}}>
+                                        <BiUserCircle size={16}/>
+                                        Hi, { displayName }
+                                    </a>
+                                </ShowOnLogin>
+                                <ShowOnLogOut>
+                                    <NavLink 
+                                        className={activeLInk}
+                                        to='/register'
+                                    > Register 
+                                    </NavLink>
+                                </ShowOnLogOut>
+                                <ShowOnLogin>
+                                    <NavLink 
+                                        className={activeLInk}
+                                        to='/order-history'
+                                    > My orders 
+                                    </NavLink>
+                                </ShowOnLogin>
+                                <ShowOnLogin>
+                                    <NavLink 
+                                        to='/'
+                                        onClick={logoutUser}
+                                        
+                                    > 
+                                        Logout
+                                    </NavLink>
+                                </ShowOnLogin>
                             </span>
                             {cart}
                         </div>
